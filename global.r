@@ -1,4 +1,5 @@
 # Projet shiny _ MPG
+library(shiny)
 library(readxl)
 library(dplyr)
 require(data.table)
@@ -15,7 +16,7 @@ library(DT)       # tableau stylé dans factoshiny
 library(shinyjs)  # Pour cacher le sidebarPanel
 
 
-#setwd("~/Projets_M2/Projet_MPG")
+setwd("~/Projets_M2/Projet_MPG")
 
 
 
@@ -111,9 +112,6 @@ for (i in 1:length(note_mpg$Cote)){
 ## on arrondi les cotes ##
 cote_alpha = round(cote_alpha,0)
 
-## rajout du bruit ##
-bruit = round(rnorm(520,0,1.5),0)
-cote_alpha = cote_alpha + bruit
 
 # On rajoute la cote_alpha au data frame note_mpg
 note_mpg$cote_alpha = cote_alpha
@@ -125,13 +123,13 @@ note_mpg$cote_alpha = cote_alpha
 
 # Top 10 des Buteurs ---
 n = 10
-top_buteur = note_mpg[,c("Poste", "Joueur", "Club", "Buts")]
+top_buteur = note_mpg[,c("Poste", "Joueur", "Club", "Buts", "Moyenne_note")]
 top_buteur = top_buteur[order(-top_buteur$Buts),]
 top_buteur = top_buteur[1:n,]
 
 # Top 10 des performant ---
 n = 10
-top_perf = note_mpg[,c("Poste", "Joueur", "Club", "performance_beta")]
+top_perf = note_mpg[,c("Poste", "Joueur", "Club", "performance_beta", , "Moyenne_note")]
 top_perf = top_perf[order(-top_perf$performance_beta),]
 top_perf = top_perf[1:n,]
 
@@ -158,7 +156,7 @@ top_entrees = top_entrees[1:n,]
 
 # TOP 5 des supersub --
 n = 5
-entree_titu = note_mpg[,c("Poste","Joueur", "Club", "Buts", "Entrees", "Titu.")]
+entree_titu = note_mpg[,c("Poste","Joueur", "Club", "Buts", "Entrees", "Titu.", "Moyenne_note")]
 entree_titu$Ratio = entree_titu$Entrees/entree_titu$Titu.
 top_supersub = entree_titu[c(entree_titu$Ratio>=1.5),]
 top_supersub$Ratio = top_supersub$Buts/top_supersub$Entrees
@@ -167,28 +165,28 @@ top_supersub = top_supersub[1:n,]
 
 
 ## Top 10 des gardiens--
-n = 8
-top_G = note_mpg[c(note_mpg$Poste=="G"),c("Poste","Joueur", "Club","performance_beta")]
+n = 10
+top_G = note_mpg[c(note_mpg$Poste=="G"),c("Poste","Joueur", "Club","performance_beta", "Moyenne_note")]
 top_G = top_G[order(-top_G$performance_beta),]
 top_G = top_G[1:n,]
 
 
 ## TOP 10 des déf ---
-top_def = note_mpg[c(note_mpg$Poste=="D"),c("Poste","Joueur", "Club","performance_beta")]
+top_def = note_mpg[c(note_mpg$Poste=="D"),c("Poste","Joueur", "Club","performance_beta", "Moyenne_note")]
 top_def = top_def[order(-top_def$performance_beta),]
 top_def = top_def[1:n,]
 
 
 ## TOP 10 des milieux --
 n = 10
-top_mil = note_mpg[c(note_mpg$Poste=="M"),c("Poste","Joueur", "Club", "performance_beta")]
+top_mil = note_mpg[c(note_mpg$Poste=="M"),c("Poste","Joueur", "Club", "performance_beta", "Moyenne_note")]
 top_mil = top_mil[order(-top_mil$performance_beta),]
 top_mil = top_mil[1:n,]
 
 
 ## TOP 10 des attaquants ---
 n = 10
-top_att = note_mpg[c(note_mpg$Poste=="A"),c("Poste","Joueur", "Club", "performance_beta")]
+top_att = note_mpg[c(note_mpg$Poste=="A"),c("Poste","Joueur", "Club", "performance_beta", "Moyenne_note")]
 top_att = top_att[order(-top_att$performance_beta),]
 top_att = top_att[1:n,]
 
@@ -218,6 +216,7 @@ top_prolifique = top_prolifique[1:n,]
 #### Optimisation lienaire : OMPR 
 n = dim(note_mpg)[1]
 nb_joueurs = 18
+maxG = 15
 # Pour selectionner les joueurs desiré
 liste = list( "Zohi Kévin","Touré Abdoulaye")
 row_jpref = as.numeric(rownames(note_mpg[note_mpg$Joueur %in% liste,]))
@@ -238,24 +237,27 @@ results = MIPModel() %>%
   add_constraint( sum_expr(z[i], i = 1:n, poste[i] == "G") == 2) %>%
   add_constraint( sum_expr(z[i], i = 1:n, poste[i] == "D") == 6) %>%
   add_constraint( sum_expr(z[i], i = 1:n, poste[i] == "M") == 6) %>%
-  add_constraint( sum_expr(z[i], i = 1:n, poste[i] == "A") == 4)
+  add_constraint( sum_expr(z[i], i = 1:n, poste[i] == "A") == 4) 
+
 
 contraint3 = as.expression(sum_expr(z[i], i = 1:n, poste[i] == "G"))
 contraint4 = as.expression(sum_expr(z[i], i = 1:n, poste[i] == "D"))
 contraint5 = as.expression(sum_expr(z[i], i = 1:n, poste[i] == "M"))
 contraint6 = as.expression(sum_expr(z[i], i = 1:n, poste[i] == "A"))
 
+
 results$constraints[[3]]$lhs =contraint3
 results$constraints[[4]]$lhs =contraint4
 results$constraints[[5]]$lhs =contraint5
 results$constraints[[6]]$lhs =contraint6
+
 
 results = solve_model(results , with_ROI(solver = "glpk"))
 results = get_solution(results, z[i])
 results = filter(results, value > 0)
 
 
-mercatoEx = note_mpg[results$i,c("Poste", "Joueur", "Club", "performance_beta", "Cote", "cote_alpha", "Buts")]
+mercatoEx = note_mpg[results$i,c("Poste", "Joueur", "Club", "performance_beta", "Cote", "cote_alpha", "Buts", "Titu.")]
 mercatoEx = mercatoEx[order(mercatoEx$Poste),]
 mercatoEx
 

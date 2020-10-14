@@ -10,7 +10,7 @@
 library(shiny)
 
 # Define UI for application that draws a histogram
-shinyUI(fluidPage(theme = "bootstrap1.css", 
+ui <- shinyUI(fluidPage(theme = "bootstrap1.css", 
                   
                   navbarPage("Fais ton mercato MPG!",
                              tabPanel("Revue des effectifs",
@@ -27,7 +27,7 @@ shinyUI(fluidPage(theme = "bootstrap1.css",
                                                                              "Stade Rennais FC" = "SRFC",
                                                                              "Lille" = "LOSC",
                                                                              "RC Strasbourg" = "RCSA",
-                                                                             "FC Nantes" = "NFC",
+                                                                             "FC Nantes" = "FCN",
                                                                              "OGC Nice" = "OGCN",
                                                                              "Montpellier HSC" = "MHSC",
                                                                              "Toulouse FC" = "TFC",
@@ -43,9 +43,10 @@ shinyUI(fluidPage(theme = "bootstrap1.css",
                                                      selectInput(inputId="tri",
                                                                  label="Classer par :", 
                                                                  choices = c("Poste"="Poste",
-                                                                             "Cote"="Cote")),
+                                                                             "Cote"="Cote",
+                                                                             "Moyenne_note"= "Moyenne_note")),
                                                      
-                                                     actionButton("update_team", "GO !")
+                                                     actionButton("update_team", "GO !", style="color:blue ; background-color:white")
                                                  )
                                                  
                                           ),
@@ -58,29 +59,62 @@ shinyUI(fluidPage(theme = "bootstrap1.css",
                                                  uiOutput("img_team")) 
                                   )
                              ),
-                             
-                             tabPanel("Nos Top 10",
-                                      sidebarLayout(
-                                          sidebarPanel(
-                                              selectInput(inputId = "top",
-                                                          label = "TOP10 :",
-                                                          choices = c("Gardiens",
-                                                                      "Defenseurs", 
-                                                                      "Milieux",
-                                                                      "Attaquants",
-                                                                      "Buteurs",
-                                                                      "Joueurs les plus performant",
-                                                                      "Joueurs les plus chers", 
-                                                                      "Remplacants les plus utilises",
-                                                                      "Supersub",
-                                                                      "Joueurs les plus prolifiques",
-                                                                      "Perles rares")
-                                              )
-                                          ),
-                                          mainPanel(
-                                              tableOutput("Top")
-                                          )
-                                      )
+                             navbarMenu("Nos Top",
+                                        tabPanel(h3("Les meilleurs par postes"),
+                                                 fluidRow(
+                                                   column(width = 6,
+                                                          h3("Top attaquants"),
+                                                          tableOutput("top_att"),
+                                                          h1("_"),
+                                                          h3("Top millieux"),
+                                                          tableOutput("top_mil")
+                                                          ),
+                                                   
+                                                   column(width = 6,
+                                                          h3("Top defenseurs"),
+                                                          tableOutput("top_def"),
+                                                          h1("_"),
+                                                          h3("Top gardiens"),
+                                                          tableOutput("top_G"))
+                                                   )
+                                                 ),
+                                                 
+                                        tabPanel(h3("Les joueurs a investir"),
+                                                 fluidRow(
+                                                   column(width = 6,
+                                                          h3("Top performances"),
+                                                          tableOutput("top_perf"),
+                                                          h1("_"),
+                                                          h3("Top buteurs"),
+                                                          tableOutput("top_buteur")
+                                                   ),
+                                                   column(width = 6,
+                                                          h3("Les plus chers"),
+                                                          tableOutput("top_cote"),
+                                                          h1("_"),
+                                                          h3("Les perles rares"),
+                                                          tableOutput("top_perle")
+                                                          )
+                                                  )
+                                                 ),
+                                        
+                                        tabPanel(h3("Les meilleurs remplaçants"),
+                                                 fluidRow(
+                                                   column(width = 6,
+                                                          h3("Top entrées"),
+                                                          tableOutput("top_entrees"),
+                                                          h1("_"),
+                                                          h3("Les supersubs"),
+                                                          p(em("Un 'supersub' est un remplacant qui marque souvent lorsqu'il rentre sur le terrain. ")),
+                                                          tableOutput("top_supersub")
+                                                          
+                                                   ),
+                                                   column(width = 6,
+                                                          h3("Les plus prolifiques"),
+                                                          tableOutput("top_prolifique")
+                                                 )
+                                                 )
+                                        )
                              ),
                              
                              tabPanel("Mercato",
@@ -88,8 +122,7 @@ shinyUI(fluidPage(theme = "bootstrap1.css",
                                           sidebarPanel(
                                               selectInput(inputId = "gardiens",
                                                           label = "Combien de gardiens veux tu pour proteger tes buts ? ",
-                                                          choices = c("1" = "1", 
-                                                                      "2" = "2",
+                                                          choices = c("2" = "2",
                                                                       "3" = "3",
                                                                       "4" = "4",
                                                                       "5 - Mais penses aux autres postes" = "5"),
@@ -97,34 +130,21 @@ shinyUI(fluidPage(theme = "bootstrap1.css",
                                               
                                               selectInput(inputId = "def",
                                                           label = "Combien de défenseurs veux tu pour ton caténacchio ? ",
-                                                          choices = c("1" = "1", 
-                                                                      "2" = "2",
-                                                                      "3" = "3",
-                                                                      "4" = "4",
-                                                                      "5" = "5", 
-                                                                      "6" = "6",
+                                                          choices = c("6" = "6",
                                                                       "7" = "7",
                                                                       "8 - Avec ça si ils marquent ... ! " = "8"),
                                                           selected = "6"),
                                               
                                               selectInput(inputId = "mil",
                                                           label = "Combien de milieux pour maitriser l'entrejeu ? ",
-                                                          choices = c("1" = "1", 
-                                                                      "2" = "2",
-                                                                      "3" = "3",
-                                                                      "4" = "4",
-                                                                      "5" = "5", 
-                                                                      "6" = "6",
+                                                          choices = c("6" = "6",
                                                                       "7" = "7",
                                                                       "8" = "8"),
                                                           selected = "6"),
                                               
                                               selectInput(inputId = "att",
                                                           label = "Combien d'attaquants veux tu dans ta team ? ",
-                                                          choices = c("1" = "1", 
-                                                                      "2" = "2",
-                                                                      "3" = "3",
-                                                                      "4" = "4",
+                                                          choices = c("4" = "4",
                                                                       "5" = "5", 
                                                                       "6" = "6",
                                                                       "7" = "7",
@@ -135,28 +155,28 @@ shinyUI(fluidPage(theme = "bootstrap1.css",
                                                           label = "Combien de millions veux tu dépenser au maximum pour tes gardiens ? ",
                                                           min = 0, 
                                                           max = 500,
-                                                          value = 100, 
+                                                          value = 500, 
                                                           step = 1),
                                               
                                               sliderInput(inputId = "maxdef",
                                                           label = "Combien de millions veux tu dépenser au maximum pour tes défenseurs ? ",
                                                           min = 0, 
                                                           max = 500,
-                                                          value = 100, 
+                                                          value = 500, 
                                                           step = 1),
                                               
                                               sliderInput(inputId = "maxmil",
                                                           label = "Combien de millions veux tu dépenser au maximum pour tes milieux ? ",
                                                           min = 0, 
                                                           max = 500,
-                                                          value = 100, 
+                                                          value = 500, 
                                                           step = 1),
                                               
                                               sliderInput(inputId = "maxatt",
                                                           label = "Combien de millions veux tu dépenser au maximum pour tes attaquants ? ",
                                                           min = 0, 
                                                           max = 500,
-                                                          value = 100, 
+                                                          value = 500, 
                                                           step = 1),
                                               
                                               selectInput(inputId = "jpref",
@@ -164,13 +184,22 @@ shinyUI(fluidPage(theme = "bootstrap1.css",
                                                           choices = c(note_mpg$Joueur),
                                                           multiple = TRUE),
                                               
-                                              actionButton("update_mercato", "Go mercato, montrez moi cette team de rêve !")
+                                              selectInput(inputId = "jdet",
+                                                          label = "Y a t-il un joueur que tu ne veux pas dans ton équipe ? ? ",
+                                                          choices = c(note_mpg$Joueur),
+                                                          multiple = TRUE),
                                               
                                           ),
                                           
-                                          mainPanel(h2("Voici ton mercato idéal"),
-                                                    p("La variable cote_alpha est la somme que nous te conseillons de miser"),
-                                                    tableOutput("mercato_table")
+                                          mainPanel(
+                                            actionButton("update_mercato", 
+                                                         h2(strong("Go mercato, montrez moi cette team de rêve !")), 
+                                                         icon("futbol", 
+                                                              class="far fa-futbol"), 
+                                                         style="color: white; background-color: darkgreen; border-color: black"),
+                                            h2("Voici ton mercato idéal"),
+                                            p("La variable cote_alpha est la somme que nous te conseillons de miser"),
+                                            tableOutput("mercato_table")
                                           )
                                       )
                              ),
@@ -215,3 +244,5 @@ shinyUI(fluidPage(theme = "bootstrap1.css",
                   )
 )
 )
+
+shinyApp(ui,server)
