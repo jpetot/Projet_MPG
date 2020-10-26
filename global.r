@@ -129,7 +129,7 @@ top_buteur = top_buteur[1:n,]
 
 # Top 10 des performant ---
 n = 10
-top_perf = note_mpg[,c("Poste", "Joueur", "Club", "performance_beta", , "Moyenne_note")]
+top_perf = note_mpg[,c("Poste", "Joueur", "Club", "performance_beta", "Moyenne_note")]
 top_perf = top_perf[order(-top_perf$performance_beta),]
 top_perf = top_perf[1:n,]
 
