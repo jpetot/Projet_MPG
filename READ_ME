@@ -1,0 +1,13 @@
+Projet shiny sur le mercato du jeu MPG. 
+
+Contient : 
+
+- les données 2019/2020 : Stats-MPG-saison7MPG.xls
+- le code pour analyser les données : global.R
+- le code pour l'application shiny : Ui.R - server.R
+
+- la presentation de restitution du projet : PrésentationMPG.pptx
+- les données 2020/2021 : mpg_stats_2.csv
+- l'analyse rapide des données 2020/2021 (need to be imporve) : global2.csv
+
+
